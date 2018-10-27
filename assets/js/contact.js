@@ -1,6 +1,7 @@
 (function contact() {
     var contact_form_element = $("form.contact-form");
-    var name_element = contact_form_element.find("[name='name']");
+    var first_name_element = contact_form_element.find("[name='first_name']");
+    var last_name_element = contact_form_element.find("[name='last_name']");
     var email_element = contact_form_element.find("[name='email']");
     var message_element = contact_form_element.find("[name='message']");
     var submit_button_element = contact_form_element.find("[data-id='contact-submit']");
@@ -9,19 +10,56 @@
 
     var validate = function(value) {
         contact_form_element.validate( {
+
             messages: {
-                "name": {
+                "first_name": {
                                 required: 'Inserisci il tuo nome'},
-                "email":{
+                "last_name": {
+                                required: 'Inserisci il tuo cognome'},
                                 required: 'Indica la tua e-mail'},
                 "message":{
                                 required: 'Inserisci il testo del tuo messaggio'},
                 "calculation":{
-                                required: 'Inserisci il risultato dell\'operazione'}
+                                required: 'Inserisci il risultato dell\'operazione'},
+                "documents": {
+                                required: 'Per favore conferma di aver letto la nostra Privacy Policy' }
             },
             rules : {
+                documents: {
+                    required: true
+                },
+            
                 calculation : { equal: value }
             }
+        });
+    }
+
+    var iubenda = function() {
+
+        _iub.cons.submit({
+            writeOnLocalStorage: false, // default: false
+            form: {
+                selector: document.getElementById('contact'),
+            },
+            consent: {
+                legal_notices: [
+                    {
+                        identifier: 'legal_documents',
+                    },
+                    {
+                        identifier: 'newsletter',
+                    },
+                    {
+                        identifier: 'terms',
+                    }
+                ]
+            }
+        })
+        .success(function (response) {
+            console.log("success", response);
+        })
+        .error(function (response) {
+            console.log("error", response);
         });
     }
 
@@ -42,8 +80,10 @@
             if (contact_form_element.valid()) {
                 submit_button_element.attr("disabled", "disabled");
 
+                iubenda();
+
                 var key = "ts_" + Date.now().toJSON();
-                var payload = JSON.stringify({ name: name_element.val(), email: email_element.val(), message: message_element.val()});
+                var payload = JSON.stringify({ name: first_name_element.val() + last_name_element.val(), email: email_element.val(), message: message_element.val()});
 
                 if ( typeof window.kvstoreio !== 'undefined' ) {
                     kvstoreio("contacts",
